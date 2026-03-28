@@ -1,0 +1,109 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 218 54% 5%; /* #060B14 */
+    --foreground: 210 40% 98%;
+
+    --card: 216 45% 11%;    /* #0F1928 */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 216 45% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 168 100% 42%; /* #00D4AA teal */
+    --primary-foreground: 218 54% 5%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 168 100% 42%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 349 100% 65%; /* #FF4D6D bear */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 168 100% 42%;
+
+    --radius: 0.5rem;
+    
+    --font-sans: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  .font-mono, .tabular-nums {
+    font-family: var(--font-mono);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-[#0F1928]/80 backdrop-blur-md border border-white/5 shadow-xl;
+  }
+  .glass-card {
+    @apply bg-[#0F1928]/60 backdrop-blur-lg border border-white/5 hover:border-white/10 transition-colors shadow-lg;
+  }
+  .animate-flash-green {
+    animation: flashGreen 1s ease-out;
+  }
+  .animate-flash-red {
+    animation: flashRed 1s ease-out;
+  }
+  
+  .animate-ticker {
+    animation: ticker 30s linear infinite;
+  }
+  .animate-ticker:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes flashGreen {
+  0% { background-color: rgba(0, 212, 170, 0.4); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flashRed {
+  0% { background-color: rgba(255, 77, 109, 0.4); }
+  100% { background-color: transparent; }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}

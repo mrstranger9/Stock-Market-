@@ -1,0 +1,297 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model where all
+ * user-generated data is isolated within a dedicated data tree. The security
+ * model prioritizes Authorization Independence, ensuring that access control
+ * decisions can be made using only the information in the request path and
+ * authentication token, without requiring costly database lookups.
+ *
+ * Data Structure: The database is segregated into two main categories:
+ * 1. Private User Data: All data specific to a user (profiles, watchlists,
+ *    portfolios, etc.) is nested under the `/users/{userId}` path, where
+ *    `{userId}` corresponds to the user's Firebase Authentication UID.
+ * 2. Public Data: Collections containing globally accessible, read-only data,
+ *    such as `/stocks` and `/aiModels`, are stored at the top level.
+ *
+ * Key Security Decisions:
+ * - Strict Ownership: A user can only access documents within their own
+ *   `/users/{userId}` data tree. Cross-user access is denied by default.
+ * - No User Enumeration: Listing the top-level `/users` collection is explicitly
+ *   disallowed to prevent leaking the user base.
+ * - Public Read-Only Collections: The `/stocks` and `/aiModels` collections are
+ *   publicly readable by anyone (including unauthenticated users) but are not
+*   writable from the client-side to protect data integrity.
+ * - Relational Integrity: On write operations, rules validate that internal ID
+ *   fields (like `userId` or `portfolioId`) match the corresponding IDs in the
+ *   document's path, ensuring data consistency.
+ *
+ * Denormalization for Authorization: This ruleset leverages a path-based
+ * security model, which is a form of structural denormalization. By placing the
+ * owner's UID (`userId`) directly in the document path for all user-owned data,
+ * we can write simple, fast, and highly secure rules like `isOwner(userId)`
+ * without needing to read the document's content (`get()`) for authorization.
+ * This is crucial for performance and scalability.
+ *
+ * Structural Segregation: Private user data and public data are stored in
+ * separate top-level collections (`/users` vs. `/stocks`). This clear
+ * separation simplifies security rules and makes list operations on public
+ * collections safe and efficient, as no filtering is required.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the cornerstone of the ownership-based security model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if a document already exists and if the user is the owner.
+     * Used for secure update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+    
+    /**
+     * Prototyping Mode Data Validation
+     * During prototyping, we only validate fields critical for authorization
+     * and relational integrity. Full schema validation is omitted for flexibility.
+     */
+
+    /**
+     * Validates that the UserProfile's internal `id` matches the document path on create.
+     */
+    function userProfileHasCorrectId(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Enforces that the UserProfile's internal `id` is immutable on update.
+     */
+    function userProfileIdIsImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates that a document's internal `userId` matches the document path on create.
+     */
+    function hasCorrectUserId(userId) {
+      return request.resource.data.userId == userId;
+    }
+
+    /**
+     * Enforces that a document's internal `userId` is immutable on update.
+     */
+    function userIdIsImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * Validates that a subcollection document's link to its parent is correct on create.
+     */
+    function hasCorrectParentId(parentIdKey, parentId) {
+      return request.resource.data[parentIdKey] == parentId;
+    }
+
+    /**
+     * Enforces that a subcollection document's link to its parent is immutable on update.
+     */
+    function parentIdIsImmutable(parentIdKey) {
+      return request.resource.data[parentIdKey] == resource.data[parentIdKey];
+    }
+
+
+    // -------------------------------------------------------------------------
+    // User Data Collections
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document.
+     * @deny (get) A user trying to read another user's profile.
+     * @deny (list) Any attempt to list all users in the `/users` collection.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && userProfileHasCorrectId(userId);
+      allow update: if isExistingOwner(userId) && userProfileIdIsImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Manages user-specific watchlists.
+       * @path /users/{userId}/watchlists/{watchlistId}
+       * @allow (create) The owner creating a new watchlist in their own space.
+       * @deny (update) A user trying to modify another user's watchlist.
+       * @principle Enforces document ownership for all operations within a user's data tree.
+       */
+      match /watchlists/{watchlistId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages AI-generated signals for a specific user.
+       * @path /users/{userId}/signals/{signalId}
+       * @allow (get) The owner reading a signal generated for them.
+       * @deny (create) A user trying to create a signal for another user.
+       * @principle Enforces document ownership and validates relational integrity.
+       */
+      match /signals/{signalId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Manages feature importance data for a specific signal.
+         * @path /users/{userId}/signals/{signalId}/featureImportances/{featureImportanceId}
+         * @allow (list) The owner listing all feature importances for their signal.
+         * @deny (delete) A user trying to delete data from another user's signal.
+         * @principle Inherits ownership from the parent path and validates the parent-child link.
+         */
+        match /featureImportances/{featureImportanceId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasCorrectParentId('signalId', signalId);
+          allow update: if isExistingOwner(userId) && parentIdIsImmutable('signalId');
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Manages user-defined trading strategies.
+       * @path /users/{userId}/tradingStrategies/{strategyId}
+       * @allow (create) The owner creating a new trading strategy.
+       * @deny (get) A user trying to view another user's private strategy.
+       * @principle Enforces document ownership for all operations.
+       */
+      match /tradingStrategies/{strategyId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Manages backtest runs initiated by a user.
+       * @path /users/{userId}/backtestRuns/{backtestRunId}
+       * @allow (get) The owner reading the results of their own backtest.
+       * @deny (update) A user trying to alter another user's backtest results.
+       * @principle Enforces document ownership and validates relational integrity.
+       */
+      match /backtestRuns/{backtestRunId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Records individual trades within a backtest run.
+         * @path /users/{userId}/backtestRuns/{backtestRunId}/trades/{tradeId}
+         * @allow (list) The owner listing the trades for their backtest run.
+         * @deny (create) A user trying to add a fake trade to another user's backtest.
+         * @principle Inherits ownership from the parent path and validates the parent-child link.
+         */
+        match /trades/{tradeId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasCorrectParentId('backtestRunId', backtestRunId);
+          allow update: if isExistingOwner(userId) && parentIdIsImmutable('backtestRunId');
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Manages a user's investment portfolios.
+       * @path /users/{userId}/portfolios/{portfolioId}
+       * @allow (create) The owner creating a new portfolio.
+       * @deny (get) A user trying to view another user's portfolio.
+       * @principle Enforces document ownership and validates relational integrity.
+       */
+      match /portfolios/{portfolioId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Represents individual stock holdings within a portfolio.
+         * @path /users/{userId}/portfolios/{portfolioId}/holdings/{holdingId}
+         * @allow (list) The owner listing all holdings in their own portfolio.
+         * @deny (update) A user trying to modify a holding in someone else's portfolio.
+         * @principle Inherits ownership from the parent path and validates the parent-child link.
+         */
+        match /holdings/{holdingId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && hasCorrectParentId('portfolioId', portfolioId);
+          allow update: if isExistingOwner(userId) && parentIdIsImmutable('portfolioId');
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+
+      /**
+       * @description Manages user-configured alerts for market conditions.
+       * @path /users/{userId}/alerts/{alertId}
+       * @allow (create) The owner setting a new alert for themselves.
+       * @deny (delete) A user trying to delete another user's alert.
+       * @principle Enforces document ownership and validates relational integrity.
+       */
+      match /alerts/{alertId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && hasCorrectUserId(userId);
+        allow update: if isExistingOwner(userId) && userIdIsImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Public Data Collections
+    // -------------------------------------------------------------------------
+
+    /**
+     * @description Public, read-only collection of stock market data.
+     * @path /stocks/{stockId}
+     * @allow (get, list) Any user, including unauthenticated ones, reading stock data.
+     * @deny (create, update, delete) Any client-side write operation to prevent data tampering.
+     * @principle Provides public read access while protecting data integrity by disallowing all writes.
+     */
+    match /stocks/{stockId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Public, read-only collection of AI model definitions.
+     * @path /aiModels/{modelId}
+     * @allow (get, list) Any user, including unauthenticated ones, reading AI model info.
+     * @deny (create, update, delete) Any client-side write operation to protect the system's model definitions.
+     * @principle Provides public read access while protecting data integrity by disallowing all writes.
+     */
+    match /aiModels/{modelId} {
+      allow get, list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

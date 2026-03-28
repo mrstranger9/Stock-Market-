@@ -1,0 +1,908 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Stores user-specific settings, preferences, and basic profile information, linked to an external authentication system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The full name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address, primarily for display and communication, assuming authentication is external.",
+          "format": "email"
+        },
+        "riskTolerance": {
+          "type": "string",
+          "description": "The user's defined risk tolerance for trading (e.g., Conservative, Moderate, Aggressive)."
+        },
+        "preferredDataProvider": {
+          "type": "string",
+          "description": "The user's chosen market data provider (e.g., Yahoo Finance, Alpha Vantage, Polygon)."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the user profile.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "riskTolerance",
+        "preferredDataProvider",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Stock": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Stock",
+      "type": "object",
+      "description": "Represents a publicly traded financial instrument (stock) with its current market data.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Stock entity, typically its ticker symbol (e.g., 'AAPL')."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "The ticker symbol of the stock (e.g., 'AAPL')."
+        },
+        "companyName": {
+          "type": "string",
+          "description": "The full name of the company associated with the stock."
+        },
+        "sector": {
+          "type": "string",
+          "description": "The industry sector the company belongs to (e.g., Technology, Finance)."
+        },
+        "marketCap": {
+          "type": "number",
+          "description": "The current market capitalization of the company."
+        },
+        "peRatio": {
+          "type": "number",
+          "description": "The Price-to-Earnings (P/E) ratio of the stock."
+        },
+        "lastPrice": {
+          "type": "number",
+          "description": "The last known trading price of the stock."
+        },
+        "dailyChange": {
+          "type": "number",
+          "description": "The absolute change in price since the market opened or previous close."
+        },
+        "dailyChangePercentage": {
+          "type": "number",
+          "description": "The percentage change in price since the market opened or previous close."
+        },
+        "volume": {
+          "type": "number",
+          "description": "The trading volume for the current day."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the market data for this stock was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "symbol",
+        "companyName",
+        "sector",
+        "marketCap",
+        "peRatio",
+        "lastPrice",
+        "dailyChange",
+        "dailyChangePercentage",
+        "volume",
+        "updatedAt"
+      ]
+    },
+    "Watchlist": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Watchlist",
+      "type": "object",
+      "description": "A user-defined collection of stocks to monitor, allowing for personalized tracking of market performance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Watchlist entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Watchlist)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the watchlist (e.g., 'My Tech Stocks')."
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional description for the watchlist."
+        },
+        "stockIds": {
+          "type": "array",
+          "description": "References to Stock entities included in this watchlist. (Relationship: Stock N:N Watchlist)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the watchlist was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the watchlist.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "stockIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AIModel": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AIModel",
+      "type": "object",
+      "description": "Defines the different AI models available in the signal engine for generating trading predictions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AIModel entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the AI model (e.g., 'Random Forest', 'LSTM Neural Network')."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type or category of the AI model (e.g., 'Machine Learning', 'Deep Learning')."
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the AI model."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates whether the AI model is currently active and available for use."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the AI model definition was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the AI model definition.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "description",
+        "isActive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Signal": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Signal",
+      "type": "object",
+      "description": "A trading recommendation (BUY, SELL, HOLD) generated by an AI model for a specific stock and timeframe.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Signal entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile, indicating which user requested or generated this signal. (Relationship: UserProfile 1:N Signal)"
+        },
+        "stockId": {
+          "type": "string",
+          "description": "Reference to Stock, for which the signal was generated. (Relationship: Stock 1:N Signal)"
+        },
+        "modelId": {
+          "type": "string",
+          "description": "Reference to AIModel, which generated this signal. (Relationship: AIModel 1:N Signal)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of trading signal (e.g., 'BUY', 'SELL', 'HOLD')."
+        },
+        "confidenceScore": {
+          "type": "number",
+          "description": "The confidence level of the signal, expressed as a percentage (0-100)."
+        },
+        "timeframe": {
+          "type": "string",
+          "description": "The trading timeframe for which the signal is relevant (e.g., '1D', '1W', '1M')."
+        },
+        "generatedAt": {
+          "type": "string",
+          "description": "Timestamp when the signal was generated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "stockId",
+        "modelId",
+        "type",
+        "confidenceScore",
+        "timeframe",
+        "generatedAt"
+      ]
+    },
+    "SignalFeatureImportance": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SignalFeatureImportance",
+      "type": "object",
+      "description": "Stores the importance values of various technical indicators or features that contributed to a specific AI-generated signal.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SignalFeatureImportance entity."
+        },
+        "signalId": {
+          "type": "string",
+          "description": "Reference to the Signal entity this feature importance relates to. (Relationship: Signal 1:N SignalFeatureImportance)"
+        },
+        "indicatorName": {
+          "type": "string",
+          "description": "The name of the technical indicator or feature (e.g., 'RSI', 'MACD', 'Volume')."
+        },
+        "importanceValue": {
+          "type": "number",
+          "description": "The normalized importance score of the indicator for the signal generation."
+        }
+      },
+      "required": [
+        "id",
+        "signalId",
+        "indicatorName",
+        "importanceValue"
+      ]
+    },
+    "TradingStrategy": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "TradingStrategy",
+      "type": "object",
+      "description": "User-defined trading strategies, configured using a visual builder or custom logic.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the TradingStrategy entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile, indicating the owner of the strategy. (Relationship: UserProfile 1:N TradingStrategy)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name given to the trading strategy."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description outlining the strategy's purpose or rules."
+        },
+        "strategyDefinition": {
+          "type": "string",
+          "description": "A string representation (e.g., JSON) defining the logic and parameters of the trading strategy."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the trading strategy was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the trading strategy.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "strategyDefinition",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BacktestRun": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BacktestRun",
+      "type": "object",
+      "description": "A record of a backtest execution for a specific trading strategy over a historical period, including its configuration and aggregated performance results.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BacktestRun entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile, indicating the user who initiated the backtest. (Relationship: UserProfile 1:N BacktestRun)"
+        },
+        "strategyId": {
+          "type": "string",
+          "description": "Reference to TradingStrategy, which was backtested. (Relationship: TradingStrategy 1:N BacktestRun)"
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the backtesting period.",
+          "format": "date"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the backtesting period.",
+          "format": "date"
+        },
+        "initialCapital": {
+          "type": "number",
+          "description": "The initial capital allocated for the backtest."
+        },
+        "runAt": {
+          "type": "string",
+          "description": "Timestamp when the backtest was executed.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the backtest run (e.g., 'Completed', 'Running', 'Failed')."
+        },
+        "sharpeRatio": {
+          "type": "number",
+          "description": "The Sharpe Ratio, a measure of risk-adjusted return."
+        },
+        "maxDrawdown": {
+          "type": "number",
+          "description": "The largest percentage drop from a peak to a trough in the strategy's equity curve."
+        },
+        "winRate": {
+          "type": "number",
+          "description": "The percentage of profitable trades out of total trades."
+        },
+        "cagr": {
+          "type": "number",
+          "description": "Compound Annual Growth Rate of the strategy during the backtest period."
+        },
+        "totalTrades": {
+          "type": "number",
+          "description": "The total number of trades executed during the backtest."
+        },
+        "profitFactor": {
+          "type": "number",
+          "description": "The ratio of gross profits to gross losses."
+        },
+        "benchmarkReturn": {
+          "type": "number",
+          "description": "The total return of a benchmark index during the backtest period for comparison."
+        },
+        "strategyReturn": {
+          "type": "number",
+          "description": "The total return percentage achieved by the strategy during the backtest period."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "strategyId",
+        "startDate",
+        "endDate",
+        "initialCapital",
+        "runAt",
+        "status",
+        "sharpeRatio",
+        "maxDrawdown",
+        "winRate",
+        "cagr",
+        "totalTrades",
+        "profitFactor",
+        "benchmarkReturn",
+        "strategyReturn"
+      ]
+    },
+    "BacktestTrade": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BacktestTrade",
+      "type": "object",
+      "description": "Records individual buy or sell transactions that occurred during a backtest run.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BacktestTrade entity."
+        },
+        "backtestRunId": {
+          "type": "string",
+          "description": "Reference to BacktestRun, indicating the backtest run this trade belongs to. (Relationship: BacktestRun 1:N BacktestTrade)"
+        },
+        "stockId": {
+          "type": "string",
+          "description": "Reference to Stock, the instrument involved in the trade. (Relationship: Stock 1:N BacktestTrade)"
+        },
+        "tradeDate": {
+          "type": "string",
+          "description": "Timestamp when the trade was executed during the backtest.",
+          "format": "date-time"
+        },
+        "tradeType": {
+          "type": "string",
+          "description": "The type of trade (e.g., 'BUY' or 'SELL')."
+        },
+        "entryPrice": {
+          "type": "number",
+          "description": "The price at which the position was entered."
+        },
+        "exitPrice": {
+          "type": "number",
+          "description": "The price at which the position was exited (null if still open at end of backtest)."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The number of shares traded."
+        },
+        "profitLoss": {
+          "type": "number",
+          "description": "The profit or loss generated by this specific trade."
+        },
+        "returnPercentage": {
+          "type": "number",
+          "description": "The percentage return generated by this specific trade."
+        }
+      },
+      "required": [
+        "id",
+        "backtestRunId",
+        "stockId",
+        "tradeDate",
+        "tradeType",
+        "entryPrice",
+        "quantity",
+        "profitLoss",
+        "returnPercentage"
+      ]
+    },
+    "Portfolio": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Portfolio",
+      "type": "object",
+      "description": "Represents a user's live investment portfolio, summarizing its current value and performance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Portfolio entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile, indicating the owner of the portfolio. (Relationship: UserProfile 1:N Portfolio)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the portfolio (e.g., 'Main Portfolio', 'Retirement Fund')."
+        },
+        "currentValue": {
+          "type": "number",
+          "description": "The current total market value of all holdings in the portfolio."
+        },
+        "dailyProfitLoss": {
+          "type": "number",
+          "description": "The profit or loss of the portfolio for the current trading day."
+        },
+        "totalReturn": {
+          "type": "number",
+          "description": "The cumulative total return of the portfolio since its inception."
+        },
+        "openPositionsCount": {
+          "type": "number",
+          "description": "The number of active, open stock positions within the portfolio."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the portfolio was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the portfolio's summary data.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "currentValue",
+        "dailyProfitLoss",
+        "totalReturn",
+        "openPositionsCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PortfolioHolding": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PortfolioHolding",
+      "type": "object",
+      "description": "Represents an individual stock holding within a user's live investment portfolio.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PortfolioHolding entity."
+        },
+        "portfolioId": {
+          "type": "string",
+          "description": "Reference to Portfolio, to which this holding belongs. (Relationship: Portfolio 1:N PortfolioHolding)"
+        },
+        "stockId": {
+          "type": "string",
+          "description": "Reference to Stock, the instrument being held. (Relationship: Stock 1:N PortfolioHolding)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The number of shares held in this position."
+        },
+        "averageBuyPrice": {
+          "type": "number",
+          "description": "The average price at which the shares in this position were acquired."
+        },
+        "buyDate": {
+          "type": "string",
+          "description": "The date when the initial purchase for this holding was made.",
+          "format": "date-time"
+        },
+        "lastTradePrice": {
+          "type": "number",
+          "description": "The last known price at which a trade involving this holding occurred, or the latest market price for valuation."
+        },
+        "currentMarketValue": {
+          "type": "number",
+          "description": "The current market value of this holding (quantity * lastTradePrice)."
+        }
+      },
+      "required": [
+        "id",
+        "portfolioId",
+        "stockId",
+        "quantity",
+        "averageBuyPrice",
+        "buyDate",
+        "lastTradePrice",
+        "currentMarketValue"
+      ]
+    },
+    "Alert": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Alert",
+      "type": "object",
+      "description": "User-configured notifications based on specific stock conditions, such as price movement or indicator thresholds.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Alert entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile, indicating the owner of the alert. (Relationship: UserProfile 1:N Alert)"
+        },
+        "stockId": {
+          "type": "string",
+          "description": "Reference to Stock, the instrument this alert is for (can be null for market-wide alerts). (Relationship: Stock 1:N Alert)"
+        },
+        "conditionType": {
+          "type": "string",
+          "description": "The type of condition that triggers the alert (e.g., 'PriceAbove', 'RSIBelow', 'MACDCrossover')."
+        },
+        "conditionValue": {
+          "type": "number",
+          "description": "The specific value or threshold for the alert condition (e.g., a price point, an RSI level)."
+        },
+        "alertType": {
+          "type": "string",
+          "description": "The method of notification for the alert (e.g., 'Email', 'SMS', 'Slack')."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the alert (e.g., 'Active', 'Triggered', 'Dismissed')."
+        },
+        "triggeredAt": {
+          "type": "string",
+          "description": "Timestamp when the alert was last triggered (null if not yet triggered).",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the alert was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of the last update to the alert definition.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "conditionType",
+        "conditionValue",
+        "alertType",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user-specific settings and profile information. Each document ID (`{userId}`) directly corresponds to the Firebase Authentication UID. Authorization requires `request.auth.uid` to match `{userId}`."
+        }
+      },
+      {
+        "path": "/users/{userId}/watchlists/{watchlistId}",
+        "definition": {
+          "entityName": "Watchlist",
+          "schema": {
+            "$ref": "#/backend/entities/Watchlist"
+          },
+          "description": "Collection of user-defined watchlists. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this watchlist."
+            },
+            {
+              "name": "watchlistId",
+              "description": "The unique identifier for the watchlist document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/signals/{signalId}",
+        "definition": {
+          "entityName": "Signal",
+          "schema": {
+            "$ref": "#/backend/entities/Signal"
+          },
+          "description": "Collection of trading signals generated for a specific user. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user to whom this signal belongs."
+            },
+            {
+              "name": "signalId",
+              "description": "The unique identifier for the signal document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/signals/{signalId}/featureImportances/{featureImportanceId}",
+        "definition": {
+          "entityName": "SignalFeatureImportance",
+          "schema": {
+            "$ref": "#/backend/entities/SignalFeatureImportance"
+          },
+          "description": "Subcollection storing feature importance data for a specific signal. Its path incorporates `userId` from the parent signal, ensuring Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the parent signal."
+            },
+            {
+              "name": "signalId",
+              "description": "The unique identifier of the parent signal document."
+            },
+            {
+              "name": "featureImportanceId",
+              "description": "The unique identifier for the feature importance document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/tradingStrategies/{strategyId}",
+        "definition": {
+          "entityName": "TradingStrategy",
+          "schema": {
+            "$ref": "#/backend/entities/TradingStrategy"
+          },
+          "description": "Collection of user-defined trading strategies. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this trading strategy."
+            },
+            {
+              "name": "strategyId",
+              "description": "The unique identifier for the trading strategy document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/backtestRuns/{backtestRunId}",
+        "definition": {
+          "entityName": "BacktestRun",
+          "schema": {
+            "$ref": "#/backend/entities/BacktestRun"
+          },
+          "description": "Collection of backtest runs initiated by a user. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who initiated this backtest run."
+            },
+            {
+              "name": "backtestRunId",
+              "description": "The unique identifier for the backtest run document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/backtestRuns/{backtestRunId}/trades/{tradeId}",
+        "definition": {
+          "entityName": "BacktestTrade",
+          "schema": {
+            "$ref": "#/backend/entities/BacktestTrade"
+          },
+          "description": "Subcollection recording individual trades within a specific backtest run. Its path incorporates `userId` from the ancestral backtest run, ensuring Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the ancestral backtest run."
+            },
+            {
+              "name": "backtestRunId",
+              "description": "The unique identifier of the parent backtest run document."
+            },
+            {
+              "name": "tradeId",
+              "description": "The unique identifier for the individual trade document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/portfolios/{portfolioId}",
+        "definition": {
+          "entityName": "Portfolio",
+          "schema": {
+            "$ref": "#/backend/entities/Portfolio"
+          },
+          "description": "Collection of live investment portfolios owned by a user. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this portfolio."
+            },
+            {
+              "name": "portfolioId",
+              "description": "The unique identifier for the portfolio document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/portfolios/{portfolioId}/holdings/{holdingId}",
+        "definition": {
+          "entityName": "PortfolioHolding",
+          "schema": {
+            "$ref": "#/backend/entities/PortfolioHolding"
+          },
+          "description": "Subcollection representing individual stock holdings within a user's portfolio. Its path incorporates `userId` from the ancestral portfolio, ensuring Authorization Independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the ancestral portfolio."
+            },
+            {
+              "name": "portfolioId",
+              "description": "The unique identifier of the parent portfolio document."
+            },
+            {
+              "name": "holdingId",
+              "description": "The unique identifier for the individual portfolio holding document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/alerts/{alertId}",
+        "definition": {
+          "entityName": "Alert",
+          "schema": {
+            "$ref": "#/backend/entities/Alert"
+          },
+          "description": "Collection of user-configured alerts. Each document includes `userId` and its path incorporates `userId`, ensuring Authorization Independence for owner-based access rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns this alert."
+            },
+            {
+              "name": "alertId",
+              "description": "The unique identifier for the alert document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/stocks/{stockId}",
+        "definition": {
+          "entityName": "Stock",
+          "schema": {
+            "$ref": "#/backend/entities/Stock"
+          },
+          "description": "Top-level collection for public stock market data. Documents are read-only for all users (public access).",
+          "params": [
+            {
+              "name": "stockId",
+              "description": "The unique identifier for the stock, typically its ticker symbol."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/aiModels/{modelId}",
+        "definition": {
+          "entityName": "AIModel",
+          "schema": {
+            "$ref": "#/backend/entities/AIModel"
+          },
+          "description": "Top-level collection for definitions of available AI models. Documents are read-only for all users (public access).",
+          "params": [
+            {
+              "name": "modelId",
+              "description": "The unique identifier for the AI model."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed following the core principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. All user-specific data is organized under a top-level `users` collection, with each user having a dedicated sub-root at `/users/{userId}`. This path-based ownership is crucial for security and scalability.\n\n**Authorization Independence:** Every user-owned document (UserProfile, Watchlist, Signal, TradingStrategy, BacktestRun, Portfolio, Alert) and its nested subcollections explicitly includes the `userId` in its path (e.g., `/users/{userId}/watchlists/{watchlistId}`). This means that Firestore security rules can determine authorization simply by comparing `request.auth.uid` with the `userId` wildcard in the path, without needing to perform costly and complex `get()` operations on parent documents. This atomic authorization check is vital for robust security, especially in batched writes and transactions.\n\n**QAPs (Rules are not Filters):**\n1.  **User-Owned Data:** By nesting all private data under `/users/{userId}/...`, `list` operations are inherently scoped to the authenticated user. A query from `request.auth.uid` to `/users/request.auth.uid/watchlists` will only return watchlists owned by that user, directly satisfying the query's intent without the need for Firestore rules to act as filters. This ensures efficient and secure retrieval of user-specific data.\n2.  **Public Data:** Collections like `/stocks` and `/aiModels` are designed with a homogeneous security posture: public read. This allows `list` operations to be performed directly without any user-based filtering by security rules, as all documents within these collections are equally accessible. This segregation prevents mixing public and private data in the same collection, simplifying rules and improving query performance.\n\n**Structural Segregation & Access Modeling:** Public entities (`Stock`, `AIModel`) are placed in top-level collections for global access. Private, user-owned entities (`UserProfile`, `Watchlist`, `Signal`, `TradingStrategy`, `BacktestRun`, `Portfolio`, `Alert`) follow a strict hierarchical path (`/users/{userId}/...`), making ownership clear and rules simple. Nested data (e.g., `SignalFeatureImportance` under `Signal`, `BacktestTrade` under `BacktestRun`, `PortfolioHolding` under `Portfolio`) continues this hierarchy, inheriting the `userId` context from its parent path, thus maintaining authorization independence.\n\n**Regarding the 'auth/configuration-not-found' error:** This is a client-side Firebase SDK initialization error, not a database structure issue. It indicates that the Firebase client configuration (e.g., `firebaseConfig` object with API key, project ID) is likely missing or incorrect when `firebase.initializeApp()` is called in the Next.js application, specifically before `createUserWithEmailAndPassword` is invoked. It is unrelated to the Firestore data structure itself, but rather to the setup of the Firebase client SDK in the frontend application."
+  }
+}
